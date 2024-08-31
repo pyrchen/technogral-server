@@ -20,8 +20,9 @@ export enum Genders {
 }
 
 export abstract class UserEntity {
-	readonly id: number;
-	readonly login: string;
+	id: string;
+	login: string;
+	password: string;
 	nickname: TNullable<string>;
 	avatar: TNullable<string>;
 	birthday: TNullable<Date>;
@@ -30,6 +31,6 @@ export abstract class UserEntity {
 	email: string;
 	likes: number;
 	dislikes: number;
-	readonly createdAt: Date;
+	createdAt: Date;
 	updatedAt: TNullable<Date>;
 }
