@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
 import { Genders, UserEntity, UserRoles } from '../../../core/entities/user.entity';
 import { Article } from './article.entity';
 import { Comment } from './comment.entity';
@@ -7,12 +7,16 @@ const TIMESTAMP = 'CURRENT_TIMESTAMP(6)';
 const defaultTimestamp = () => TIMESTAMP;
 
 @Entity()
+@Unique(['email', 'login'])
 export class User extends UserEntity {
-	@PrimaryGeneratedColumn()
-	readonly id: number;
+	@PrimaryGeneratedColumn('uuid')
+	id: string;
 
 	@Column()
-	readonly login: string;
+	login: string;
+
+	@Column({ unique: true })
+	email: string;
 
 	@Column({ nullable: true, unique: true })
 	nickname: string;
@@ -28,9 +32,6 @@ export class User extends UserEntity {
 
 	@Column({ enum: UserRoles, default: UserRoles.NEWBEE })
 	role: UserRoles;
-
-	@Column()
-	email: string;
 
 	@Column({ default: 0 })
 	likes: number;
