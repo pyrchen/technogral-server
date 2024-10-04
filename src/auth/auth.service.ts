@@ -1,9 +1,17 @@
-import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+	BadRequestException,
+	ConflictException,
+	ForbiddenException,
+	Injectable,
+	UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import type { Request, Response } from 'express';
 import { getPasswordHash } from 'src/utils/password.utils';
-import { AuthLoginDto, AuthRegisterDto } from './auth.dto';
+import { AuthLoginDto, AuthRegisterDto, AuthResponse } from './auth.dto';
 import { UserEntity } from 'src/core/entities/user.entity';
+import { JWT_CONFIG } from './auth.constants';
 
 @Injectable()
 export class AuthService {
@@ -12,7 +20,7 @@ export class AuthService {
 		private jwtService: JwtService
 	) {}
 
-	async login({ login, password }: AuthLoginDto): Promise<{ access_token: string }> {
+	async login({ login, password }: AuthLoginDto, response: Response): Promise<AuthResponse> {
 		const user = await this.usersService.getByLogin(login);
 
 		const hash = await getPasswordHash(password);
@@ -20,10 +28,10 @@ export class AuthService {
 			throw new UnauthorizedException();
 		}
 
-		return this._getPayload(user);
+		return this._getPayload(user, response);
 	}
 
-	async register({ login, email, password }: AuthRegisterDto): Promise<{ access_token: string }> {
+	async register({ login, email, password }: AuthRegisterDto, response: Response): Promise<AuthResponse> {
 		const user = await this.usersService.getByLogin(login);
 
 		if (user) {
@@ -42,15 +50,49 @@ export class AuthService {
 			throw new BadRequestException();
 		}
 
-		return this._getPayload(newUser);
+		return this._getPayload(newUser, response);
 	}
 
-	_getPayload(user: UserEntity) {
+	async refresh(request: Request, response: Response): Promise<AuthResponse> {
+		const refreshToken = request.cookies['refreshToken'];
+
+		if (!refreshToken) {
+			throw new ForbiddenException();
+		}
+
+		const payload = await this.jwtService.verifyAsync(refreshToken, {
+			secret: JWT_CONFIG.secret,
+		});
+
+		if (!payload) {
+			throw new ForbiddenException();
+		}
+
+		const user = await this.usersService.getById(payload.id);
+		if (!user) {
+			throw new ForbiddenException();
+		}
+
+		return this._getPayload(user, response);
+	}
+
+	_getPayload(user: UserEntity, response: Response) {
 		const payload = { id: user.id, nickname: user.nickname };
+
+		const accessToken = this.jwtService.sign(payload, {
+			expiresIn: JWT_CONFIG.expiresIn,
+		});
+		const refreshToken = this.jwtService.sign(payload, {
+			expiresIn: JWT_CONFIG.refreshExpiresIn,
+		});
+
+		response.cookie('refreshToken', refreshToken, {
+			httpOnly: true,
+		});
 
 		return {
 			...user,
-			access_token: this.jwtService.sign(payload),
+			accessToken,
 		};
 	}
 }
