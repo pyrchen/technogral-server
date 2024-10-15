@@ -1,4 +1,4 @@
-import { Body, Controller, Post, HttpCode, HttpStatus, Res, Req, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, Res, UseInterceptors } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { AuthLoginDto, AuthRegisterDto } from './auth.dto';
@@ -28,5 +28,11 @@ export class AuthController {
 	@Post('refresh')
 	refresh(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
 		return this.authService.refresh(request, response);
+	}
+
+	@HttpCode(HttpStatus.OK)
+	@Post('logout')
+	logout(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
+		return this.authService.logout(request, response);
 	}
 }

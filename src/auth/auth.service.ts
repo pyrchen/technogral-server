@@ -4,7 +4,6 @@ import {
 	ForbiddenException,
 	Injectable,
 	NotFoundException,
-	UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
@@ -78,6 +77,14 @@ export class AuthService {
 		}
 
 		return this._getPayload(user, response);
+	}
+
+	async logout(request: Request, response: Response) {
+		response.clearCookie('refreshToken');
+
+		return {
+			message: 'Успешно разлогинен',
+		};
 	}
 
 	_getPayload(user: UserEntity, response: Response) {
