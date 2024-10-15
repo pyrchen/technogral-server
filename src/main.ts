@@ -18,6 +18,12 @@ async function bootstrap() {
 		})
 	);
 
+	app.enableCors({
+		origin: ['http://localhost:8000', 'https://pyrchen-technogral-client-e0fb.twc1.net'],
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+		credentials: true,
+	});
+
 	await repl(AppModule);
 	await app.listen(configService.get<number>('APP_PORT') || 3000);
 
