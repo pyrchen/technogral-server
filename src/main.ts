@@ -3,10 +3,17 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ILayer } from 'express-serve-static-core';
 import { TNullable } from './types/advanced.types';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 	const configService: ConfigService = app.get(ConfigService);
+
+	app.useGlobalPipes(
+		new ValidationPipe({
+			forbidNonWhitelisted: true,
+		})
+	);
 
 	await repl(AppModule);
 	await app.listen(configService.get<number>('APP_PORT') || 3000);

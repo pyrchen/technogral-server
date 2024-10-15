@@ -19,6 +19,10 @@ export class UsersService {
 		return await this.userRepository.findOneBy({ id: userId });
 	}
 
+	async getByEmail(email: string) {
+		return await this.userRepository.findOneBy({ email });
+	}
+
 	async getByLogin(login: string) {
 		return await this.userRepository.findOneBy({ login });
 	}
