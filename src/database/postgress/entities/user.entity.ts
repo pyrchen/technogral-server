@@ -12,14 +12,17 @@ export class User extends UserEntity {
 	@PrimaryGeneratedColumn('uuid')
 	id: string;
 
-	@Column()
+	@Column({ nullable: true })
 	login: string;
 
-	@Column({ unique: true })
+	@Column({ unique: true, nullable: true })
 	email: string;
 
 	@Column({ nullable: true, unique: true })
 	nickname: string;
+
+	@Column()
+	password: string;
 
 	@Column({ nullable: true })
 	birthday: Date;
@@ -46,7 +49,7 @@ export class User extends UserEntity {
 	comments: Comment[];
 
 	@CreateDateColumn({ type: 'timestamp', default: defaultTimestamp })
-	readonly createdAt: Date;
+	createdAt: Date;
 
 	@UpdateDateColumn({ type: 'timestamp', nullable: true, default: null, onUpdate: TIMESTAMP })
 	updatedAt: Date;

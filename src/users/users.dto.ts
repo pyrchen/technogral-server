@@ -35,6 +35,6 @@ export class UserDto implements Partial<Omit<UserEntity, 'id' | 'updatedAt' | 'c
 	dislikes: number;
 }
 
-export class CreateUserDto extends PickType(UserDto, ['login', 'email', 'password']) {}
+export class CreateUserDto extends PickType(UserDto, ['email', 'password']) {}
 
 export class UpdateUserDto extends OmitType(UserDto, ['login', 'email']) {}

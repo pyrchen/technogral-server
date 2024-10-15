@@ -1,5 +1,5 @@
 export const JWT_CONFIG = {
-	secret: process.env.JWT_SECRET,
+	secret: 'hellooo',
 	expiresIn: '24h',
 	refreshExpiresIn: '7d',
 };

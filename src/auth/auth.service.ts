@@ -3,12 +3,13 @@ import {
 	ConflictException,
 	ForbiddenException,
 	Injectable,
+	NotFoundException,
 	UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import type { Request, Response } from 'express';
-import { getPasswordHash } from 'src/utils/password.utils';
+import { comparePasswords, getPasswordHash } from 'src/utils/password.utils';
 import { AuthLoginDto, AuthRegisterDto, AuthResponse } from './auth.dto';
 import { UserEntity } from 'src/core/entities/user.entity';
 import { JWT_CONFIG } from './auth.constants';
@@ -20,28 +21,31 @@ export class AuthService {
 		private jwtService: JwtService
 	) {}
 
-	async login({ login, password }: AuthLoginDto, response: Response): Promise<AuthResponse> {
-		const user = await this.usersService.getByLogin(login);
+	async login({ email, password }: AuthLoginDto, response: Response): Promise<AuthResponse> {
+		const user = await this.usersService.getByEmail(email);
 
-		const hash = await getPasswordHash(password);
-		if (user?.password !== hash) {
-			throw new UnauthorizedException();
+		if (!user) {
+			throw new NotFoundException('Пользователя с таким логином или email не найдено');
+		}
+
+		const isPasswordValid = await comparePasswords(password, user.password);
+		if (!isPasswordValid) {
+			throw new BadRequestException('Неверный логин, email или пароль');
 		}
 
 		return this._getPayload(user, response);
 	}
 
-	async register({ login, email, password }: AuthRegisterDto, response: Response): Promise<AuthResponse> {
-		const user = await this.usersService.getByLogin(login);
+	async register({ email, password }: AuthRegisterDto, response: Response): Promise<AuthResponse> {
+		const user = await this.usersService.getByEmail(email);
 
 		if (user) {
-			throw new ConflictException();
+			throw new ConflictException('Такой пользователь уже существует');
 		}
 
 		const hash = await getPasswordHash(password);
 
 		const newUser = await this.usersService.create({
-			login,
 			email,
 			password: hash,
 		});
@@ -82,6 +86,7 @@ export class AuthService {
 		const accessToken = this.jwtService.sign(payload, {
 			expiresIn: JWT_CONFIG.expiresIn,
 		});
+
 		const refreshToken = this.jwtService.sign(payload, {
 			expiresIn: JWT_CONFIG.refreshExpiresIn,
 		});
