@@ -6,7 +6,7 @@ import { TNullable } from './types/advanced.types';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-	const app = await NestFactory.create(AppModule);
+	const app = await NestFactory.create(AppModule, { cors: true });
 	const configService: ConfigService = app.get(ConfigService);
 
 	app.useGlobalPipes(
