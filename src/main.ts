@@ -19,7 +19,7 @@ async function bootstrap() {
 	);
 
 	await repl(AppModule);
-	await app.listen(configService.get<number>('APP_PORT') || 3000);
+	await app.listen(+configService.get<number>('APP_PORT') || 3000);
 
 	const server = app.getHttpServer();
 	const router = server._events.request._router;
